@@ -148,6 +148,7 @@ def sandbox_service(compose_services: dict) -> None:
         "depends_on": ["mqtt"],
         "build": os.path.join(THIS_DIR, "sandbox"),
         "restart": "unless-stopped",
+        "privileged": True,
     }
 
     compose_services["sandbox"] = sandbox_data
@@ -303,7 +304,7 @@ if __name__ == "__main__":
     check_sudo()
 
     min_modules = ["fcm", "fusion", "mavp2p", "mqtt", "vio"]
-    norm_modules = min_modules + ["apriltag", "pcm", "status", "thermal"]
+    norm_modules = min_modules + ["pcm", "status"]#removed apriltag and thermal
     all_modules = norm_modules + ["sandbox"]
 
 
