@@ -17,6 +17,7 @@ WORKDIR /app
 
 # Copy the file requirements.txt from the host into the container
 COPY requirements.txt requirements.txt
+COPY bell_avr_libraries-0.1.13-py3-none-any.whl bell_avr_libraries-0.1.13-py3-none-any.whl
 
 # First, upgrade pip (Python's package manager) and install a package
 # called "wheel". A "wheel" is a Python package format that is basically

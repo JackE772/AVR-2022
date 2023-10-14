@@ -31,7 +31,7 @@ def check_sudo() -> None:
         return
 
     # re run ourselves with sudo
-    print("Needing sudo privileges to run docker, re-launching")
+    print("Needing sudo privledges to run docker, re-lauching")
 
     try:
         sys.exit(
@@ -42,6 +42,19 @@ def check_sudo() -> None:
     except KeyboardInterrupt:
         sys.exit(1)
 
+
+def circledetect_service(compose_services: dict, local: bool = False) -> None:
+    circledetect_data = {
+        "depends_on": ["mqtt"],
+        "build": os.path.join(THIS_DIR, "circledetect"),
+        "restart": "unless-stopped",
+        "privileged": True,
+        "devices":["/dev/video0:/dev/video0","/dev/video1:/dev/video1"]
+    }
+
+    circledetect_data["build"] = os.path.join(THIS_DIR, "circledetect")
+
+    compose_services["circledetect"] = circledetect_data
 
 def apriltag_service(compose_services: dict) -> None:
     apriltag_data = {
@@ -132,8 +145,6 @@ def sandbox_service(compose_services: dict) -> None:
         "depends_on": ["mqtt"],
         "build": os.path.join(THIS_DIR, "sandbox"),
         "restart": "unless-stopped",
-        "privileged": True,
-
     }
 
     compose_services["sandbox"] = sandbox_data
@@ -212,6 +223,7 @@ def prepare_compose_file(local: bool = False) -> str:
     # prepare compose services dict
     compose_services = {}
 
+    circledetect_service(compose_services,local)
     apriltag_service(compose_services)
     fcm_service(compose_services, local)
     fusion_service(compose_services, local)
@@ -255,11 +267,11 @@ def main(action: str, modules: List[str], local: bool = False) -> None:
     elif action == "pull":
         cmd += ["pull"] + modules
     elif action == "run":
-        # shouldn't happen
         cmd += ["up", "--remove-orphans", "--force-recreate"] + modules
     elif action == "stop":
         cmd += ["down", "--remove-orphans", "--volumes"]
     else:
+        # shouldn't happen
         raise ValueError(f"Unknown action: {action}")
 
     print(f"Running command: {' '.join(cmd)}")
@@ -288,7 +300,7 @@ if __name__ == "__main__":
     check_sudo()
 
     min_modules = ["fcm", "fusion", "mavp2p", "mqtt", "vio"]
-    norm_modules = min_modules + ["apriltag", "pcm", "status", "thermal"]
+    norm_modules = min_modules + ["circledetect","apriltag", "pcm", "status", "thermal"]
     all_modules = norm_modules + ["sandbox"]
 
     parser = argparse.ArgumentParser()

@@ -131,11 +131,9 @@ def sandbox_service(compose_services: dict) -> None:
     sandbox_data = {
         "depends_on": ["mqtt"],
         "build": os.path.join(THIS_DIR, "sandbox"),
-        "restart": "unless-stopped",
         "privileged": True,
-
+        "restart": "unless-stopped",
     }
-
     compose_services["sandbox"] = sandbox_data
 
 
@@ -185,7 +183,7 @@ def thermal_service(compose_services: dict, local: bool = False) -> None:
     if local:
         thermal_data["build"] = os.path.join(THIS_DIR, "thermal")
     else:
-        thermal_data["image"] = f"{IMAGE_BASE}thermal:latest"
+        thermal_data["image"] = f"avr-2022_thermal:latest"
 
     compose_services["thermal"] = thermal_data
 
@@ -255,11 +253,11 @@ def main(action: str, modules: List[str], local: bool = False) -> None:
     elif action == "pull":
         cmd += ["pull"] + modules
     elif action == "run":
-        # shouldn't happen
         cmd += ["up", "--remove-orphans", "--force-recreate"] + modules
     elif action == "stop":
         cmd += ["down", "--remove-orphans", "--volumes"]
     else:
+        # shouldn't happen
         raise ValueError(f"Unknown action: {action}")
 
     print(f"Running command: {' '.join(cmd)}")
