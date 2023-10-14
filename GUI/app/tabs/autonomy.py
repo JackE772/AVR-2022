@@ -101,7 +101,7 @@ class AutonomyWidget(BaseTabWidget):
         """
         self.send_message(
             "avr/autonomous/building/drop",
-            AvrAutonomousBuildingDropPayload(id=number, enabled=state),
+            AvrAutonomousBuildingEnablePayload(id=number, enabled=state),
         )
 
         if state:
@@ -125,7 +125,7 @@ class AutonomyWidget(BaseTabWidget):
         Set autonomous mode
         """
         self.send_message(
-            "avr/autonomous/enable", AvrAutonomousEnablePayload(enabled=state)
+            "avr/autonomous/enable", AvrAutonomousBuildingDropPayload(enabled=state)
         )
 
         if state:
