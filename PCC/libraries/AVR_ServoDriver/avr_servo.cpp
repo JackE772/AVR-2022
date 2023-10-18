@@ -1,5 +1,9 @@
 #include "avr_servo.hpp"
 
+//speed is used for contiuos servos where we care about the speed
+//will not be used for normal servos
+speed = 0.5;
+
 AVRServo::AVRServo() : Adafruit_PWMServoDriver()
 {
     servo_min = SERVOMIN;
@@ -8,12 +12,12 @@ AVRServo::AVRServo() : Adafruit_PWMServoDriver()
 
 void AVRServo::open_servo(uint8_t servo)
 {
-    setPWM(servo, 0, servo_max);
+    setPWM(servo, 0, servo_max * speed);
 }
 
 void AVRServo::close_servo(uint8_t servo)
 {
-    setPWM(servo, 0, servo_min);
+    setPWM(servo, 0, servo_min * speed);
 }
 
 void AVRServo::set_servo_percent(uint8_t servo, uint8_t percent)
