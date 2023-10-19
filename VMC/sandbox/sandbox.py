@@ -63,9 +63,10 @@ class gimbal:
             logger.debug(f"No valid Direction passed {direction} is not defined in this contaxt sandbox line 72")
         self.disableSteppers() #disable for testing to see induvidual steps wiht pin output
     
-    def limitSteps(self):
-        self.current_step_x = self.current_step_x%8
-        self.current_step_y = self.current_step_y&8
+    def disableSteppers(self):
+        for pin in range(4):
+            GPIO.output(self.control_pins[pin], GPIO.LOW)
+            GPIO.output(self.control_pins_side[pin], GPIO.LOW)  
 
     #moves steps conrols GPIO pins to move servo output
     def moveSteps(self, steps:int, sequence, control_pins, currrent_step) -> int:
