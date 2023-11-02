@@ -56,7 +56,7 @@ class gimbal:
          GPIO.output(pin, 0)
 
     def move(self, steps:int, direction:str): #steps:the number of full steps direction:"L-R-U-D"
-        direction_map = {"U": self.moveUp, "D": self.moveDown, "L": self.moveLeft, "R": self.moveRight}
+        direction_map = {"U": self.moveUp, "D": self.moveDown, "L": self.moveLeft, "R": self.moveRight, "S":self.open_servo}
         if direction in direction_map:
             direction_map[direction](steps)
         else:
@@ -96,7 +96,21 @@ class gimbal:
     def moveRight(self, steps:int) -> None:
         self.current_step_x += self.moveSteps(steps, self.halfstep_seq_bck, self.control_pins_side, self.current_step_x)
 
-
+    #temp
+    def open_servo(self) -> None:
+        # It's super easy, use the `self.send_message` method with the first argument
+        # as the topic, and the second argument as the payload.
+        # Pro-tip, if you set `python.analysis.typeCheckingMode` to `basic` in you
+        # VS Code preferences, you'll get a red underline if your payload doesn't
+        # match the expected format for the topic.
+        self.send_message(
+            "avr/pcm/set_servo",
+            {"servo": 1, "action": 10},
+        )
+        self.send_message(
+            "avr/pcm/set_servo",
+            {"servo": 1, "action": 90},
+        )
 
 # This creates a new class that will contain multiple functions
 # which are known as "methods". This inherits from the MQTTModule class
