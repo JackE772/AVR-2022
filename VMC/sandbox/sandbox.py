@@ -3,7 +3,7 @@
 # It also helps us make sure that our code is sending the proper payload on a topic
 # and is receiving the proper payload as well.
 from bell.avr.mqtt.client import MQTTModule
-from bell.avr.mqtt.payloads import AvrFcmVelocityPayload, AvrPcmStepperMovePayload
+from bell.avr.mqtt.payloads import AvrFcmVelocityPayload, AvrPcmStepperMovePayload, AvrPcmSetServoAbsPayload
 
 # This imports the third-party Loguru library which helps make logging way easier
 # and more useful.
@@ -62,11 +62,11 @@ class gimbal:
         else:
             logger.debug(f"No valid Direction passed {direction} is not defined in this contaxt sandbox line 72")
         self.disableSteppers() #disable for testing to see induvidual steps wiht pin output
-    
+
     def disableSteppers(self):
         for pin in range(4):
             GPIO.output(self.control_pins[pin], GPIO.LOW)
-            GPIO.output(self.control_pins_side[pin], GPIO.LOW)  
+            GPIO.output(self.control_pins_side[pin], GPIO.LOW)
 
     #moves steps conrols GPIO pins to move servo output
     def moveSteps(self, steps:int, sequence, control_pins, currrent_step) -> int:
@@ -124,6 +124,7 @@ class Sandbox(MQTTModule):
         self.topic_map = {
             "avr/fcm/velocity": self.show_velocity,
             "avr/pcm/stepper/move": self.show_stepper,
+            "avr/pcm/set_servo_abs": self.open_servo,
         }
 
     # Here's an example of a custom message handler here.
@@ -160,12 +161,16 @@ class Sandbox(MQTTModule):
         # VS Code preferences, you'll get a red underline if your payload doesn't
         # match the expected format for the topic.
         self.send_message(
-            "avr/pcm/set_servo_open_close",
-            {"servo": 0, "action": "open"},
+            "avr/pcm/set_servo",
+            {"servo": 1, "action": 10},
+        )
+        self.send_message(
+            "avr/pcm/set_servo",
+            {"servo": 1, "action": 90},
         )
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     # This is what actually initializes the Sandbox class, and executes it.
     # This is nested under the above condition, as otherwise, if this file
     # were imported by another file, these lines would execute, as the interpreter
