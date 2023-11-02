@@ -276,16 +276,13 @@ class gimbalControlWidget(BaseTabWidget):
         auger_groupbox.setLayout(auger_layout)
 
         auger_button = QtWidgets.QPushButton("Spin")
-        auger_button.clicked.connect(functools.partial(self.set_servo, 1, "open"))  # type: ignore
+        auger_button.clicked.connect(lambda: self.controlStepper(1, "S"))  # type: ignore
         auger_layout.addWidget(auger_button)
 
-        auger_stop_button = QtWidgets.QPushButton("Stop")
-        auger_stop_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 90))
+        auger_stop_button = QtWidgets.QPushButton("Seal")
+        auger_stop_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 0))
         auger_layout.addWidget(auger_stop_button)
 
-        auger_reverse_button = QtWidgets.QPushButton("Spin Reverse")
-        auger_reverse_button.clicked.connect(functools.partial(self.set_servo, 1, "close"))  # type: ignore
-        auger_layout.addWidget(auger_reverse_button)
 
         holder_layout.addWidget(auger_groupbox)
 
