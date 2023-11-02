@@ -15,6 +15,8 @@ from app.tabs.vmc_telemetry import VMCTelemetryWidget
 from app.tabs.gimbalControl import gimbalControlWidget
 from loguru import logger
 from PySide6 import QtCore, QtGui, QtWidgets
+from app.tabs.flight_path import AVRFlightPath
+
 
 
 class TabBar(QtWidgets.QTabBar):
@@ -224,6 +226,17 @@ class MainWindow(QtWidgets.QWidget):
             self.mqtt_debug_widget.process_message
         )
         self.mqtt_debug_widget.emit_message.connect(
+            self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
+        )
+
+        #AVR flight path widget
+
+        self.avr_flight_path_widget = AVRFlightPath(self)
+        self.avr_flight_path_widget.build()
+        self.avr_flight_path_widget.pop_in.connect(self.tabs.pop_in)
+        self.tabs.addTab(self.avr_flight_path_widget, self.avr_flight_path_widget.windowTitle())
+
+        self.avr_flight_path_widget.emit_message.connect(
             self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
         )
 
