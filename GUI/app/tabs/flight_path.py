@@ -163,7 +163,7 @@ class AVRFlightPath(BaseTabWidget):
 
     def takeoff(self):
         #Fly upwards 3 meters/Takeoff
-        alt = 3
+        alt = 3.3
         self.sendTakeoff(alt)
 
     def land(self):
@@ -174,7 +174,7 @@ class AVRFlightPath(BaseTabWidget):
         #Go towards Building
         n = 4.115 #From center of landing pad to edge of building 1 is 4.949m, building top is .61m, 5.559 ft real comp.
         e = -1.591 #To edge of building 1 is -1.359, -1.969 in real comp
-        d = -3
+        d = -3.3
         heading = 0
         self.gotoNED(n, e, d, heading)
         
@@ -182,7 +182,7 @@ class AVRFlightPath(BaseTabWidget):
         #Return to pad
         n = 0
         e = 0
-        d = -3
+        d = -3.3
         heading = 0
         self.gotoNED(n, e, d, heading)
 
