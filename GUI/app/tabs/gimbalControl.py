@@ -41,9 +41,15 @@ class JoystickWidget(BaseTabWidget):
         self.servoxmax = 99
         self.servoymax = 99
 
-        # servo declarations
-        self.Gimbal_Min = 10
+        # gimbal declarations
+        self.Gimbal_Min = 150 #number of steps accross
         self.Gimbal_Max = 0
+
+        self.centerValue = self.Gimbal_Min // 2
+        print(f"center at {self.centerValue}")
+        self.netX = self.centerValue
+        self.netY = self.centerValue
+
 
     def _center(self) -> QtCore.QPointF:
         """
@@ -58,46 +64,41 @@ class JoystickWidget(BaseTabWidget):
         Update the servos on joystick movement.
         """
 
-
-        y_reversed = 225 - self.current_y
-        # side to side  270 left, 360 right
-
         x_servo_abs = round(
-            map_value(
-                self.current_x + 25, 25, 225, self.Gimbal_Min, self.Gimbal_Max
-            ) - 5
+            map_value(self.current_x + 25, 25, 225, self.Gimbal_Min, self.Gimbal_Max)
         )
-        y_servo_abs = round(
-            map_value(y_reversed, 25, 225, self.Gimbal_Min, self.Gimbal_Max)
-        ) - 5
-        y_servo_abs = int(y_servo_abs)
         x_servo_abs = int(x_servo_abs)
 
-        print(f"X: {x_servo_abs} Y: {y_servo_abs}")
-        if(x_servo_abs > 0):
+        y_servo_abs = round(
+            map_value(self.current_y, 25, 225, self.Gimbal_Min, self.Gimbal_Max)
+        )
+        y_servo_abs = int(y_servo_abs)
+
+        x_move_value = self.netX + x_servo_abs
+        y_move_value = self.netY + y_servo_abs
+
+        if(x_move_value > self.centerValue):
             self.send_message(
                 "avr/pcm/stepper/move",
-                AvrPcmStepperMovePayload(steps=x_servo_abs, direction="L")
+                AvrPcmStepperMovePayload(steps=x_move_value, direction="L")
             )
-            print("moved left")
-        elif(x_servo_abs < 0):
+        elif(x_move_value < self.centerValue):
             self.send_message(
                 "avr/pcm/stepper/move",
-                AvrPcmStepperMovePayload(steps=-1 * x_servo_abs, direction="R")
+                AvrPcmStepperMovePayload(steps=x_move_value, direction="R")
             )
-            print("moved right")
-        if(y_servo_abs > 0):
+        if(y_move_value > self.centerValue):
             self.send_message(
                 "avr/pcm/stepper/move",
-                AvrPcmStepperMovePayload(steps=y_servo_abs, direction="D")
+                AvrPcmStepperMovePayload(steps=y_move_value, direction="D")
             )
-            print("moved up")
-        elif(y_servo_abs < 0):
+        elif(y_move_value < self.centerValue):
             self.send_message(
                 "avr/pcm/stepper/move",
-                AvrPcmStepperMovePayload(steps=-1 * y_servo_abs, direction="U")
+                AvrPcmStepperMovePayload(steps=y_move_value, direction="U")
             )
-            print("move up")
+        self.netX = self.centerValue - x_servo_abs
+        self.netY = self.centerValue - y_servo_abs
 
 
 
