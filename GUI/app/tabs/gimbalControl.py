@@ -257,11 +257,11 @@ class gimbalControlWidget(BaseTabWidget):
         right_button.clicked.connect(lambda: self.controlStepper(self.scale, "R"))
         button_layout.addWidget(right_button)
 
-        down_button = QtWidgets.QPushButton("down")
+        down_button = QtWidgets.QPushButton("up")
         down_button.clicked.connect(lambda: self.controlStepper(self.scale, "D"))
         button_layout.addWidget(down_button)
 
-        up_button = QtWidgets.QPushButton("up")
+        up_button = QtWidgets.QPushButton("down")
         up_button.clicked.connect(lambda: self.controlStepper(self.scale, "U"))
         button_layout.addWidget(up_button)
 
@@ -276,12 +276,12 @@ class gimbalControlWidget(BaseTabWidget):
         auger_layout = QtWidgets.QVBoxLayout()
         auger_groupbox.setLayout(auger_layout)
 
-        auger_button = QtWidgets.QPushButton("Spin")
-        auger_button.clicked.connect(lambda: self.controlStepper(1, "S"))  # type: ignore
+        auger_button = QtWidgets.QPushButton("drop")
+        auger_button.clicked.connect(functools.partial(self.set_servo, 1, "open"))  # type: ignore
         auger_layout.addWidget(auger_button)
 
         auger_stop_button = QtWidgets.QPushButton("Seal")
-        auger_stop_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 0))
+        auger_stop_button.clicked.connect(functools.partial(self.set_servo, 1, "close"))
         auger_layout.addWidget(auger_stop_button)
 
 
@@ -300,7 +300,7 @@ class gimbalControlWidget(BaseTabWidget):
         servo_layout.addWidget(servo_1_slider)
 
         servo_close_button = QtWidgets.QPushButton("Stop/Arm")
-        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 1000)) #sets to fully on
+        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 1000, False)) #sets to fully on
         servo_layout.addWidget(servo_close_button)
 
         holder_layout.addWidget(servo_groupbox)
@@ -318,12 +318,14 @@ class gimbalControlWidget(BaseTabWidget):
         print(f"current scale: {self.scale}")
 
     def setSlider(self, position:int) -> None:
-        self.set_servo_pos(0, position*10)
+        self.set_servo_pos(0, position*10, False)
 
-    def set_servo_pos(self, number: int, position: int) -> None:
+    def set_servo_pos(self, number: int, position: int, map: bool) -> None:
         """
         Set a servo state
         """
+        if(map):
+            position = map_value(position, 0, 180,1000, 2000)
         self.send_message(
             "avr/pcm/set_servo_abs",
             AvrPcmSetServoAbsPayload(servo=number, absolute=position),
@@ -337,4 +339,3 @@ class gimbalControlWidget(BaseTabWidget):
             "avr/pcm/set_servo_open_close",
             AvrPcmSetServoOpenClosePayload(servo=number, action=action),
         )
-
