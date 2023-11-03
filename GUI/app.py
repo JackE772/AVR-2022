@@ -146,9 +146,6 @@ class MainWindow(QtWidgets.QWidget):
         self.gimbalControl_widet.emit_message.connect(
             self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
         )
-        self.gimbalControl_widet.emit_message.connect(
-            self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
-        )
 
 
         # vmc telemetry widget
