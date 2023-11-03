@@ -277,11 +277,11 @@ class gimbalControlWidget(BaseTabWidget):
         auger_groupbox.setLayout(auger_layout)
 
         auger_button = QtWidgets.QPushButton("drop")
-        auger_button.clicked.connect(functools.partial(self.set_servo, 1, "open"))  # type: ignore
+        auger_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 2000, False))  # type: ignore
         auger_layout.addWidget(auger_button)
 
         auger_stop_button = QtWidgets.QPushButton("Seal")
-        auger_stop_button.clicked.connect(functools.partial(self.set_servo, 1, "close"))
+        auger_stop_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 400, False))
         auger_layout.addWidget(auger_stop_button)
 
 
@@ -339,3 +339,4 @@ class gimbalControlWidget(BaseTabWidget):
             "avr/pcm/set_servo_open_close",
             AvrPcmSetServoOpenClosePayload(servo=number, action=action),
         )
+
