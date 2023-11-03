@@ -300,7 +300,7 @@ class gimbalControlWidget(BaseTabWidget):
         servo_layout.addWidget(servo_1_slider)
 
         servo_close_button = QtWidgets.QPushButton("Stop/Arm")
-        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 1000, False)) #sets to fully on
+        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 2000, False)) #sets to fully on
         servo_layout.addWidget(servo_close_button)
 
         holder_layout.addWidget(servo_groupbox)
