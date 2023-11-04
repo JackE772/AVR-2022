@@ -562,52 +562,15 @@ class gimbalControlWidget(BaseTabWidget):
         slider_button_layout.addWidget(button_groupbox)
         #layout.addWidget(slider_button_groupbox)
 
-        holder_groupbox = QtWidgets.QGroupBox("")
-        holder_layout = QtWidgets.QVBoxLayout()
-        holder_groupbox.setLayout(holder_layout)
-
-        auger_groupbox = QtWidgets.QGroupBox("auger controls")
-        auger_layout = QtWidgets.QVBoxLayout()
-        auger_groupbox.setLayout(auger_layout)
-
-        auger_button = QtWidgets.QPushButton("drop")
-        auger_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 2000, False))  # type: ignore
-        auger_layout.addWidget(auger_button)
-
-        auger_stop_button = QtWidgets.QPushButton("Seal")
-        auger_stop_button.clicked.connect(functools.partial(self.set_servo_pos, 1, 400, False))
-        auger_layout.addWidget(auger_stop_button)
-
-        arm_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
-        arm_slider.setGeometry(50,50,200,50)
-        arm_slider.setMinimum(600)
-        arm_slider.setMaximum(1800)
-        arm_slider.setValue(86)
-        arm_slider.valueChanged.connect(lambda: self.set_servo_pos(4, arm_slider.value(), False))
-        auger_layout.addWidget(arm_slider)
-
-
-        holder_layout.addWidget(auger_groupbox)
-
         servo_groupbox = QtWidgets.QGroupBox("Vacuum slider")
         servo_layout = QtWidgets.QHBoxLayout()
         servo_groupbox.setLayout(servo_layout)
-
-        servo_1_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
-        servo_1_slider.setGeometry(50,50,200,50)
-        servo_1_slider.setMinimum(100)
-        servo_1_slider.setMaximum(200)
-        servo_1_slider.setValue(86)
-        servo_1_slider.valueChanged.connect(lambda: self.setSlider(servo_1_slider.value()))
-        servo_layout.addWidget(servo_1_slider)
 
         servo_close_button = QtWidgets.QPushButton("Stop/Arm")
         servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 2000, False)) #sets to fully on
         servo_layout.addWidget(servo_close_button)
 
-        holder_layout.addWidget(servo_groupbox)
-
-        layout.addWidget(holder_groupbox)
+        layout.addWidget(servo_groupbox)
 
     def controlStepper(self, step:int, dir:str) ->None:
         self.send_message(
@@ -643,21 +606,23 @@ class gimbalControlWidget(BaseTabWidget):
         )
 
     def on_press(self, key):
-        if key == keyboard.Key.esc:
-            return False  # stop listener
         try:
             #dont judge the if else list because its dogshit code
             k = key.char  # single-char keys
-            if k == "q":
+            if k == "q":  #seal
                 self.set_servo_pos(1, 2000, False)
-            elif k == "w":
+            elif k == "w": #open
                 self.set_servo_pos(1, 400, False)
-            elif k == "e": #swing arm
-                self.set_servo_pos(4, 700, False)
-            elif k == "r": #swing arm to middle
+            elif k == "y": #swing arm
+                self.set_servo_pos(4, 800, False)
+            elif k == "u": #swing arm halfway to mid
+                self.set_servo_pos(4, 1000, False)
+            elif k == "i": #swing arm to middle
                 self.set_servo_pos(4, 1400, False)
-            elif k == "t": #swing arm to end
-                self.set_servo_pos(4, 2000, False)
+            elif k == "o": #swing arm halfway to end
+                self.set_servo_pos(4, 1600, False)
+            elif k == "p": #swing arm to end
+                self.set_servo_pos(4, 1800, False)
             elif k == "0":
                 self.set_servo_pos(0, 1000, False)
             elif k == "1":
@@ -671,6 +636,5 @@ class gimbalControlWidget(BaseTabWidget):
             elif k == "5":
                 self.set_servo_pos(0, 2000, False)
         except Exception:
-            k = key.char
-            print(f"key not found {k}")
+            print("key not found")
 
