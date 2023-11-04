@@ -9,6 +9,7 @@ from typing import Optional, Tuple
 from ..lib.config import config
 import colour
 from ..lib.calc import map_value
+from pynput import keyboard
 import math
 
 from bell.avr.mqtt.payloads import (
@@ -492,6 +493,10 @@ class gimbalControlWidget(BaseTabWidget):
         self.scale = 10
         self.largestScale = 50
 
+        listener = keyboard.Listener(on_press=self.on_press)
+        listener.start()  # start to listen on a separate thread
+        #listener.join()  # remove if main thread is polling self.keys
+
     def build(self) ->None:
         """
         building the GUI
@@ -575,8 +580,8 @@ class gimbalControlWidget(BaseTabWidget):
 
         arm_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         arm_slider.setGeometry(50,50,200,50)
-        arm_slider.setMinimum(400)
-        arm_slider.setMaximum(2000)
+        arm_slider.setMinimum(600)
+        arm_slider.setMaximum(1800)
         arm_slider.setValue(86)
         arm_slider.valueChanged.connect(lambda: self.set_servo_pos(4, arm_slider.value(), False))
         auger_layout.addWidget(arm_slider)
@@ -636,4 +641,36 @@ class gimbalControlWidget(BaseTabWidget):
             "avr/pcm/set_servo_open_close",
             AvrPcmSetServoOpenClosePayload(servo=number, action=action),
         )
+
+    def on_press(self, key):
+        if key == keyboard.Key.esc:
+            return False  # stop listener
+        try:
+            #dont judge the if else list because its dogshit code
+            k = key.char  # single-char keys
+            if k == "q":
+                self.set_servo_pos(1, 2000, False)
+            elif k == "w":
+                self.set_servo_pos(1, 400, False)
+            elif k == "e": #swing arm
+                self.set_servo_pos(4, 700, False)
+            elif k == "r": #swing arm to middle
+                self.set_servo_pos(4, 1400, False)
+            elif k == "t": #swing arm to end
+                self.set_servo_pos(4, 2000, False)
+            elif k == "0":
+                self.set_servo_pos(0, 1000, False)
+            elif k == "1":
+                self.set_servo_pos(0, 1200, False)
+            elif k == "2":
+                self.set_servo_pos(0, 1400, False)
+            elif k == "3":
+                self.set_servo_pos(0, 1600, False)
+            elif k == "4":
+                self.set_servo_pos(0, 1800, False)
+            elif k == "5":
+                self.set_servo_pos(0, 2000, False)
+        except Exception:
+            k = key.char
+            print(f"key not found {k}")
 
