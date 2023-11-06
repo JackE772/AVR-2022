@@ -17,6 +17,8 @@ from bell.avr.mqtt.payloads import (
     AvrPcmSetServoAbsPayload,
     AvrPcmSetServoOpenClosePayload,
     AvrPcmSetServoPctPayload,
+    AvrPcmFireLaserPayload,
+    AvrPcmSetLaserOffPayload,
 )
 
 
@@ -563,12 +565,21 @@ class gimbalControlWidget(BaseTabWidget):
         #layout.addWidget(slider_button_groupbox)
 
         servo_groupbox = QtWidgets.QGroupBox("Vacuum slider")
-        servo_layout = QtWidgets.QHBoxLayout()
+        servo_layout = QtWidgets.QVBoxLayout()
         servo_groupbox.setLayout(servo_layout)
 
         servo_close_button = QtWidgets.QPushButton("Stop/Arm")
         servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 2000, False)) #sets to fully on
         servo_layout.addWidget(servo_close_button)
+
+        laser_on_button = QtWidgets.QPushButton("laser on")
+        servo_layout.addWidget(laser_on_button)
+
+        laser_off_button = QtWidgets.QPushButton("laser off")
+        servo_layout.addWidget(laser_off_button)
+
+        laser_on_button.clicked.connect(lambda: self.set_laser(True))  # type: ignore
+        laser_off_button.clicked.connect(lambda: self.set_laser(False))  # type: ignore
 
         layout.addWidget(servo_groupbox)
 
@@ -638,3 +649,17 @@ class gimbalControlWidget(BaseTabWidget):
         except Exception:
             print("key not found")
 
+    def set_laser(self, state: bool) -> None:
+        if state:
+            topic = "avr/pcm/set_laser_on"
+            payload = AvrPcmSetLaserOnPayload()
+            text = "Laser On"
+            color = "green"
+        else:
+            topic = "avr/pcm/set_laser_off"
+            payload = AvrPcmSetLaserOffPayload()
+            text = "Laser Off"
+            color = "red"
+
+        self.send_message(topic, payload)
+        self.laser_toggle_label.setText(wrap_text(text, color))
