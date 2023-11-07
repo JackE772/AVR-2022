@@ -17,7 +17,7 @@ from bell.avr.mqtt.payloads import (
     AvrPcmSetServoAbsPayload,
     AvrPcmSetServoOpenClosePayload,
     AvrPcmSetServoPctPayload,
-    AvrPcmFireLaserPayload,
+    AvrPcmSetLaserOnPayload,
     AvrPcmSetLaserOffPayload,
 )
 
