@@ -1,5 +1,4 @@
 paho-mqtt
 Jetson.GPIO
-more-itertools
 loguru==0.6.0
 bell_avr_libraries-0.1.13-py3-none-any.whl

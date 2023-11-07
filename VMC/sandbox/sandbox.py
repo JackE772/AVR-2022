@@ -3,15 +3,15 @@
 # It also helps us make sure that our code is sending the proper payload on a topic
 # and is receiving the proper payload as well.
 from bell.avr.mqtt.client import MQTTModule
-from bell.avr.mqtt.payloads import AvrFcmVelocityPayload, AvrPcmStepperMovePayload, AvrPcmSetServoAbsPayload
+from bell.avr.mqtt.payloads import AvrFcmVelocityPayload, AvrPcmStepperMovePayload, AvrApriltagsVisible, AvrPcmSetBaseColorPayload
 
 # This imports the third-party Loguru library which helps make logging way easier
 # and more useful.
 # https://loguru.readthedocs.io/en/stable/
 from loguru import logger
 #libs needed to run steppers
+from typing import Tuple
 import Jetson.GPIO as GPIO
-import itertools
 import time
 
 
@@ -56,7 +56,7 @@ class gimbal:
          GPIO.output(pin, 0)
 
     def move(self, steps:int, direction:str): #steps:the number of full steps direction:"L-R-U-D"
-        direction_map = {"U": self.moveUp, "D": self.moveDown, "L": self.moveLeft, "R": self.moveRight, "S":self.open_servo}
+        direction_map = {"U": self.moveUp, "D": self.moveDown, "L": self.moveLeft, "R": self.moveRight}
         if direction in direction_map:
             direction_map[direction](steps)
         else:
@@ -96,22 +96,6 @@ class gimbal:
     def moveRight(self, steps:int) -> None:
         self.current_step_x += self.moveSteps(steps, self.halfstep_seq_bck, self.control_pins_side, self.current_step_x)
 
-    #temp
-    def open_servo(self) -> None:
-        # It's super easy, use the `self.send_message` method with the first argument
-        # as the topic, and the second argument as the payload.
-        # Pro-tip, if you set `python.analysis.typeCheckingMode` to `basic` in you
-        # VS Code preferences, you'll get a red underline if your payload doesn't
-        # match the expected format for the topic.
-        self.send_message(
-            "avr/pcm/set_servo",
-            {"servo": 1, "action": 10},
-        )
-        self.send_message(
-            "avr/pcm/set_servo",
-            {"servo": 1, "action": 90},
-        )
-
 # This creates a new class that will contain multiple functions
 # which are known as "methods". This inherits from the MQTTModule class
 # that we imported from our custom MQTT library.
@@ -138,8 +122,21 @@ class Sandbox(MQTTModule):
         self.topic_map = {
             "avr/fcm/velocity": self.show_velocity,
             "avr/pcm/stepper/move": self.show_stepper,
-            "avr/pcm/set_servo_abs": self.open_servo,
+            "avr/apriltags/visible": self.read_tag,
         }
+
+    def set_led(self, color: Tuple[int, int, int, int]) -> None:
+        """
+        Set LED color
+        """
+        self.send_message(
+            "avr/pcm/set_base_color", AvrPcmSetBaseColorPayload(wrgb=color)
+        )
+
+    def read_tag(self, payload: AvrApriltagsVisible) -> None:
+        tags = payload["tags"]
+        logger.debug(tags)
+
 
     # Here's an example of a custom message handler here.
     # This is what executes whenever a message is received on the "avr/fcm/velocity"
@@ -165,24 +162,6 @@ class Sandbox(MQTTModule):
         direction = payload["direction"]
         logger.debug(f"steps: {steps} direction {direction}")
         self.gimbal1.move(steps, direction)
-
-    # Here is an example on how to publish a message to an MQTT topic to
-    # perform an action
-    def open_servo(self) -> None:
-        # It's super easy, use the `self.send_message` method with the first argument
-        # as the topic, and the second argument as the payload.
-        # Pro-tip, if you set `python.analysis.typeCheckingMode` to `basic` in you
-        # VS Code preferences, you'll get a red underline if your payload doesn't
-        # match the expected format for the topic.
-        self.send_message(
-            "avr/pcm/set_servo",
-            {"servo": 1, "action": 10},
-        )
-        self.send_message(
-            "avr/pcm/set_servo",
-            {"servo": 1, "action": 90},
-        )
-
 
 if __name__ == "__main__":
     # This is what actually initializes the Sandbox class, and executes it.
