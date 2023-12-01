@@ -13,6 +13,7 @@ from app.tabs.thermal_view_control import ThermalViewControlWidget
 from app.tabs.vmc_control import VMCControlWidget
 from app.tabs.vmc_telemetry import VMCTelemetryWidget
 from app.tabs.gimbalControl import gimbalControlWidget
+from app.tabs.reconGimbal import ReconUIWidget
 from loguru import logger
 from PySide6 import QtCore, QtGui, QtWidgets
 from app.tabs.flight_path import AVRFlightPath
@@ -137,11 +138,21 @@ class MainWindow(QtWidgets.QWidget):
             self.set_serial_connected_state
         )
 
+        #recon gimbal
+        self.reconGimbal_widget = ReconUIWidget(self)
+        self.reconGimbal_widget.build()
+        self.reconGimbal_widget.pop_in.connect(self.tabs.pop_in)
+        self.tabs.addTab(self.reconGimbal_widget, self.reconGimbal_widget.windowTitle())
+
+        self.reconGimbal_widget.emit_message.connect(
+            self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
+        )
+
         #gimbal control
         self.gimbalControl_widet = gimbalControlWidget(self)
         self.gimbalControl_widet.build()
         self.gimbalControl_widet.pop_in.connect(self.tabs.pop_in)
-        self.tabs.addTab(self.gimbalControl_widet, self.gimbalControl_widet.windowTitle())\
+        self.tabs.addTab(self.gimbalControl_widet, self.gimbalControl_widet.windowTitle())
 
         self.gimbalControl_widet.emit_message.connect(
             self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
@@ -181,6 +192,10 @@ class MainWindow(QtWidgets.QWidget):
 
         self.vmc_control_widget.emit_message.connect(
             self.main_connection_widget.mqtt_connection_widget.mqtt_client.publish
+        )
+
+        self.main_connection_widget.mqtt_connection_widget.mqtt_client.message.connect(
+            self.vmc_control_widget.process_message
         )
 
         # thermal view widget

@@ -1,11 +1,10 @@
 from __future__ import annotations
+import contextlib
 #from pynput import keyboard
 
-import functools
 import json
-import base64
 import time
-import time
+from pynput import keyboard
 
 from typing import List, Literal, Tuple
 
@@ -28,6 +27,11 @@ class VMCControlWidget(BaseTabWidget):
         super().__init__(parent)
         self.setWindowTitle("VMC Control")
 
+        #keyboard listener
+        listener = keyboard.Listener(on_press=self.on_press)
+        listener.start()  # start to listen on a separate thread
+        #listener.join()  # remove if main thread is polling self.keys
+
         #drop distance defintions (mm)
         self.nearZone = 40
         self.dropZone = 20
@@ -44,8 +48,8 @@ class VMCControlWidget(BaseTabWidget):
         self.colorBlank = (0,0,0,0)
 
         #servo parameters
-        self.servoPin = 7
-        self.openPulse = 800
+        self.servoPin = 1
+        self.openPulse = 400
         self.closePulse = 2000
 
         #STATIC state variables
@@ -56,14 +60,14 @@ class VMCControlWidget(BaseTabWidget):
         self.OPENING = 3
         self.CLOSING = 4
 
-        self.augurPosition = 0;
+        self.augurPosition = 0
 
         #time of the last drop
         self.lastDrop = 0
 
         self.actionCount = 0
         #number of drops wanted
-        self.targetDropAction = 3
+        self.targetDropAction = 4
 
         #current state
         self.state = self.ARMED
@@ -80,7 +84,8 @@ class VMCControlWidget(BaseTabWidget):
     def moveAugur(self) -> None:
         #if drop complete, move to unarmed
         if(self.actionCount < 0):
-            self.state = self.ARMED
+            self.state = self.UNARMED
+            print("unarrmed dropping")
             return
         #of drop in progress, toggle the augur
         self.toggleAugur()
@@ -115,6 +120,7 @@ class VMCControlWidget(BaseTabWidget):
         """
         Process an incoming message and update the appropriate component
         """
+        #print("topic:" + topic)
         if(self.state == self.DROPPING and time.time() > (self.lastDrop + self.timeInterval)):
             self.moveAugur()
 
@@ -159,3 +165,18 @@ class VMCControlWidget(BaseTabWidget):
             "avr/pcm/set_servo_abs",
             AvrPcmSetServoAbsPayload(servo=number, absolute=position),
         )
+
+    def on_press(self, key):
+        with contextlib.suppress(Exception):
+            k = key.char
+            if k == "a":
+                self.state = self.ARMED
+            elif k == "s":
+                self.state = self.UNARMED
+            elif k == "l": #use only for testing
+                self.state = self.DROPPING
+            elif k == "x": #arm for one
+                self.targetDropAction = 1
+            elif k == "z": #arm for four
+                self.targetDropAction = 4
+            print(self.state)

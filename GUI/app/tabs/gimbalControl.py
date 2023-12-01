@@ -11,6 +11,7 @@ import colour
 from ..lib.calc import map_value
 from pynput import keyboard
 import math
+import time
 
 from bell.avr.mqtt.payloads import (
     AvrPcmStepperMovePayload,
@@ -331,8 +332,8 @@ class JoystickWidget(BaseTabWidget):
         self.servoymax = 99
 
         # servo declarations
-        self.SERVO_ABS_MAX = 2200
-        self.SERVO_ABS_MIN = 700
+        self.SERVO_ABS_MAX = 1800
+        self.SERVO_ABS_MIN = 800
 
     def _center(self) -> QtCore.QPointF:
         """
@@ -540,36 +541,15 @@ class gimbalControlWidget(BaseTabWidget):
         slider_layout.addWidget(scale_slider)
         slider_button_layout.addWidget(slider_groupbox)
 
-        #makes the gimbal controler box
-        button_groupbox = QtWidgets.QGroupBox("control buttons")
-        button_layout = QtWidgets.QHBoxLayout()
-        button_groupbox.setLayout(button_layout)
-
-        left_button = QtWidgets.QPushButton("left")
-        left_button.clicked.connect(lambda: self.controlStepper(self.scale, "L"))
-        button_layout.addWidget(left_button)
-
-        right_button = QtWidgets.QPushButton("right")
-        right_button.clicked.connect(lambda: self.controlStepper(self.scale, "R"))
-        button_layout.addWidget(right_button)
-
-        down_button = QtWidgets.QPushButton("up")
-        down_button.clicked.connect(lambda: self.controlStepper(self.scale, "D"))
-        button_layout.addWidget(down_button)
-
-        up_button = QtWidgets.QPushButton("down")
-        up_button.clicked.connect(lambda: self.controlStepper(self.scale, "U"))
-        button_layout.addWidget(up_button)
-
-        slider_button_layout.addWidget(button_groupbox)
-        #layout.addWidget(slider_button_groupbox)
-
         servo_groupbox = QtWidgets.QGroupBox("Vacuum slider")
         servo_layout = QtWidgets.QVBoxLayout()
         servo_groupbox.setLayout(servo_layout)
 
+        bomber_text = QtWidgets.QLabel("armed: false")
+        servo_layout.addWidget(bomber_text)
+
         servo_close_button = QtWidgets.QPushButton("Stop/Arm")
-        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 2000, False)) #sets to fully on
+        servo_close_button.clicked.connect(functools.partial(self.set_servo_pos, 0, 2000)) #sets to fully on
         servo_layout.addWidget(servo_close_button)
 
         laser_on_button = QtWidgets.QPushButton("laser on")
@@ -596,12 +576,10 @@ class gimbalControlWidget(BaseTabWidget):
     def setSlider(self, position:int) -> None:
         self.set_servo_pos(0, position*10, False)
 
-    def set_servo_pos(self, number: int, position: int, map: bool) -> None:
+    def set_servo_pos(self, number: int, position: int) -> None:
         """
         Set a servo state
         """
-        if(map):
-            position = map_value(position, 0, 180,1000, 2000)
         self.send_message(
             "avr/pcm/set_servo_abs",
             AvrPcmSetServoAbsPayload(servo=number, absolute=position),
@@ -616,38 +594,40 @@ class gimbalControlWidget(BaseTabWidget):
             AvrPcmSetServoOpenClosePayload(servo=number, action=action),
         )
 
-    def on_press(self, key):
+    def on_press(self, key):  # sourcery skip
         try:
             #dont judge the if else list because its dogshit code
+            #why the fuck did I not make this a switch MAKE IT A SWITCH DUMBASS
             k = key.char  # single-char keys
             if k == "q":  #seal
-                self.set_servo_pos(1, 2000, False)
+                self.set_servo_pos(1, 2000)
             elif k == "w": #open
-                self.set_servo_pos(1, 400, False)
+                self.set_servo_pos(1, 400)
             elif k == "y": #swing arm
-                self.set_servo_pos(4, 800, False)
+                self.set_servo_pos(4, 800)
             elif k == "u": #swing arm halfway to mid
-                self.set_servo_pos(4, 1000, False)
+                self.set_servo_pos(4, 1000)
             elif k == "i": #swing arm to middle
-                self.set_servo_pos(4, 1400, False)
+                self.set_servo_pos(4, 1400)
             elif k == "o": #swing arm halfway to end
-                self.set_servo_pos(4, 1600, False)
+                self.set_servo_pos(4, 1600)
             elif k == "p": #swing arm to end
-                self.set_servo_pos(4, 1800, False)
+                self.set_servo_pos(4, 1800)
+            #fan pwm outputs
             elif k == "0":
-                self.set_servo_pos(0, 1000, False)
+                self.set_servo_pos(0, 1000)
             elif k == "1":
-                self.set_servo_pos(0, 1200, False)
+                self.set_servo_pos(0, 1200)
             elif k == "2":
-                self.set_servo_pos(0, 1400, False)
+                self.set_servo_pos(0, 1400)
             elif k == "3":
-                self.set_servo_pos(0, 1600, False)
+                self.set_servo_pos(0, 1600)
             elif k == "4":
-                self.set_servo_pos(0, 1800, False)
+                self.set_servo_pos(0, 1800)
             elif k == "5":
-                self.set_servo_pos(0, 2000, False)
+                self.set_servo_pos(0, 2000)
         except Exception:
-            print("key not found")
+            pass #need something here for a try except statemet
 
     def set_laser(self, state: bool) -> None:
         if state:
@@ -662,4 +642,3 @@ class gimbalControlWidget(BaseTabWidget):
             color = "red"
 
         self.send_message(topic, payload)
-        self.laser_toggle_label.setText(wrap_text(text, color))
